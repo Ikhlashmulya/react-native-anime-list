@@ -13,13 +13,21 @@ import {
 export default function index() {
   const [animeList, setAnimeList] = useState<AnimeDto[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [page, setPage] = useState<number>(1);
+  const [hasMore, setHasMore] = useState<boolean>(true);
 
   const getAnimeList = async () => {
+    if (!hasMore) {
+      return;
+    }
     try {
       setIsLoading(true);
-      const response = await fetch(`https://api.jikan.moe/v4/anime`);
-      const { data } = await response.json();
-      setAnimeList(data);
+      const response = await fetch(
+        `https://api.jikan.moe/v4/anime?page=${page}`
+      );
+      const json = await response.json();
+      setHasMore(json.pagination.has_next_page);
+      setAnimeList((prevData) => [...prevData, ...json.data]);
     } catch (error) {
       console.error("There was a problem with the fetch operation:", error);
     } finally {
@@ -27,59 +35,72 @@ export default function index() {
     }
   };
 
+  const onEndReached = () => {
+    if (!isLoading && hasMore) {
+      setPage((prev) => prev + 1);
+    }
+  };
+
   useEffect(() => {
     getAnimeList();
-  }, []);
+  }, [page]);
 
   return (
     <View>
-      {isLoading ? (
-        <ActivityIndicator style={{ marginTop: 20 }} size={50} color="#000ff" />
-      ) : (
-        <>
-          <FlatList
-            data={animeList}
-            renderItem={({ item }) => (
-              <TouchableOpacity
-                onPress={() => {
-                  router.navigate(`/anime/${item.mal_id}`);
-                }}
-              >
-                <View
+      <FlatList
+        onEndReached={onEndReached}
+        onEndReachedThreshold={2}
+        ListFooterComponent={
+          isLoading ? (
+            <ActivityIndicator
+              style={{ marginTop: 20 }}
+              size={50}
+              color="#000ff"
+            />
+          ) : (
+            <></>
+          )
+        }
+        data={animeList}
+        renderItem={({ item }) => (
+          <TouchableOpacity
+            onPress={() => {
+              router.navigate(`/anime/${item.mal_id}`);
+            }}
+          >
+            <View
+              style={{
+                backgroundColor: "#fff",
+                flexDirection: "row",
+                gap: 10,
+                padding: 10,
+                flex: 1,
+              }}
+            >
+              <Image
+                source={item.images["jpg"].image_url}
+                style={{ width: 70, height: 100 }}
+                contentFit="cover"
+              />
+              <View style={{ width: "100%", paddingEnd: 100 }}>
+                <Text
                   style={{
-                    backgroundColor: "#fff",
-                    flexDirection: "row",
-                    gap: 10,
-                    padding: 10,
-                    flex: 1,
+                    fontWeight: "bold",
+                    fontSize: 15,
+                    flexWrap: "wrap",
                   }}
                 >
-                  <Image
-                    source={item.images["jpg"].image_url}
-                    style={{ width: 70, height: 100 }}
-                    contentFit="cover"
-                  />
-                  <View style={{ width: "100%", paddingEnd: 100 }}>
-                    <Text
-                      style={{
-                        fontWeight: "bold",
-                        fontSize: 15,
-                        flexWrap: "wrap",
-                      }}
-                    >
-                      {item.title}
-                    </Text>
-                    <Text style={{ overflow: "scroll" }}>
-                      genre : {item.genres.map((e) => e.name).join(", ")}
-                    </Text>
-                  </View>
-                </View>
-              </TouchableOpacity>
-            )}
-            keyExtractor={(item) => `${item.mal_id}`}
-          />
-        </>
-      )}
+                  {item.title}
+                </Text>
+                <Text style={{ overflow: "scroll" }}>
+                  genre : {item.genres.map((e) => e.name).join(", ")}
+                </Text>
+              </View>
+            </View>
+          </TouchableOpacity>
+        )}
+        keyExtractor={(item) => `${item.mal_id}`}
+      />
     </View>
   );
 }
