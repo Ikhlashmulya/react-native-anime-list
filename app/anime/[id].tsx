@@ -1,3 +1,4 @@
+import { useThemeColor } from "@/hooks/useThemeColor";
 import { AnimeDto } from "@/type/anime-dto";
 import { Image } from "expo-image";
 import { useLocalSearchParams } from "expo-router";
@@ -7,6 +8,7 @@ import { ActivityIndicator, ScrollView, Text, View } from "react-native";
 export default function Anime() {
   const { id } = useLocalSearchParams();
   const [anime, setAnime] = useState<AnimeDto | undefined>(undefined);
+  const textColor = useThemeColor({}, "text");
 
   const getAnime = async () => {
     try {
@@ -38,7 +40,12 @@ export default function Anime() {
               style={{ width: 160, height: 240 }}
             />
             <Text
-              style={{ fontWeight: "bold", fontSize: 18, marginVertical: 10 }}
+              style={{
+                fontWeight: "bold",
+                fontSize: 18,
+                marginVertical: 10,
+                color: textColor,
+              }}
             >
               {anime.title}
             </Text>
@@ -50,13 +57,14 @@ export default function Anime() {
                 fontWeight: "bold",
                 width: "100%",
                 borderBottomWidth: 1,
-                borderBottomColor: "black",
+                borderBottomColor: textColor,
                 marginBottom: 15,
+                color: textColor,
               }}
             >
               Synopsis
             </Text>
-            <Text>{anime.synopsis}</Text>
+            <Text style={{ color: textColor }}>{anime.synopsis}</Text>
           </View>
         </ScrollView>
       ) : (

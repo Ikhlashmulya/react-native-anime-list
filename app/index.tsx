@@ -1,3 +1,4 @@
+import { useThemeColor } from "@/hooks/useThemeColor";
 import { AnimeDto } from "@/type/anime-dto";
 import { Image } from "expo-image";
 import { router } from "expo-router";
@@ -15,6 +16,8 @@ export default function index() {
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [page, setPage] = useState<number>(1);
   const [hasMore, setHasMore] = useState<boolean>(true);
+  const bgColor = useThemeColor({}, "background");
+  const textColor = useThemeColor({}, "text");
 
   const getAnimeList = async () => {
     if (!hasMore) {
@@ -70,7 +73,7 @@ export default function index() {
           >
             <View
               style={{
-                backgroundColor: "#fff",
+                backgroundColor: bgColor,
                 flexDirection: "row",
                 gap: 10,
                 padding: 10,
@@ -88,11 +91,12 @@ export default function index() {
                     fontWeight: "bold",
                     fontSize: 15,
                     flexWrap: "wrap",
+                    color: textColor,
                   }}
                 >
                   {item.title}
                 </Text>
-                <Text style={{ overflow: "scroll" }}>
+                <Text style={{ color: textColor }}>
                   genre : {item.genres.map((e) => e.name).join(", ")}
                 </Text>
               </View>
